@@ -54,6 +54,15 @@ namespace Recuperatorio.Controllers
             _guests[index] = updated;
             return Ok(updated);
         }
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
+        {
+            var removed = _guests.RemoveAll(g => g.Id == id);
+            return removed == 0
+                ? NotFound(new { error = "Guest not fount", status = 404 })
+                : NoContent();
+        }
+
        
     }
 }
