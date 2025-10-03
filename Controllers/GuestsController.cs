@@ -22,6 +22,21 @@ namespace Recuperatorio.Controllers
             return guest is null ? NotFound(new { error = "Guest not found", status = 404 })
                 : Ok(guest);
         }
+        [HttpPost]
+        public IActionResult Create([FromBody] CreateGuestDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var guest = new Guest
+            {
+                Id=Guid.NewGuid(),
+                FullName=dto.FullName.Trim(),
+                Email=dto.Email.Trim(),
+                Phone=dto.Phone.Trim(),
+                Confirmed=dto.Confirmed
+            };
+            _guests.Add(guest);
+            return CreatedAtAction(nameof(GetOne), new { id = guest.Id }, guest);
+        }
         
     }
 }
