@@ -37,6 +37,23 @@ namespace Recuperatorio.Controllers
             _guests.Add(guest);
             return CreatedAtAction(nameof(GetOne), new { id = guest.Id }, guest);
         }
-        
+        [HttpPut("{id:guid}")]
+        public IActionResult Update(Guid id, [FromBody] UpdateGuestDto dto)
+        {
+            if(!ModelState.IsValid) return ValidationProblem(ModelState);
+            var index = _guests.FindIndex(g => g.Id == id);
+            if (index == -1) return NotFound(new { error = "Guest not found", status = 404 });
+            var updated = new Guest
+            {
+                Id=id,
+                FullName=dto.FullName.Trim(),
+                Email=dto.Email.Trim(),
+                Phone=dto.Phone.Trim(),
+                Confirmed=dto.Confirmed
+            };
+            _guests[index] = updated;
+            return Ok(updated);
+        }
+       
     }
 }
