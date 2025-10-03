@@ -37,7 +37,26 @@ namespace Recuperatorio.Controllers
             return CreatedAtAction(nameof(GetOne), new { id = events.Id }, events);
         }
 
-       
+        [HttpPut("{id:guid}")]
+        public IActionResult Update(Guid id, [FromBody] UpdateEventDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var index = _events.FindIndex(x => x.Id == id);
+            if (index == -1) return NotFound(new { error = "Event not found", status = 404 });
+            var updated = new Event
+            {
+                Id = id,
+                Title = dto.Title.Trim(),
+                Location = dto.Location.Trim(),
+                Theme = dto.Theme.Trim()
+
+            };
+            _events[index] = updated;
+            return Ok(updated);
+        }
+
+        
+
 
     }  
 }
