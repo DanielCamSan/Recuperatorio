@@ -47,5 +47,34 @@ namespace Recuperatorio.Controllers
 
         }
 
+        [HttpPut("{id:guid}")]
+        public IActionResult Update(Guid id, [FromBody] UpdateTicketDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var index = _tickets.FindIndex(b => b.Id == id);
+            if (index == -1)
+                return NotFound(new { error = "Ticket not found", status = 404 });
+            var updated = new Ticket
+            {
+                Id = id,
+                GuestId = Guid.NewGuid(),
+                EventId = Guid.NewGuid(),
+                Type = dto.Type.Trim(),
+                Price = dto.Price,
+                Status = dto.Status.Trim(),
+                Notes = dto.Notes.Trim()
+
+
+            };
+
+            _tickets[index]=updated;
+            return Ok(updated);
+
+        }
+
+
+
+
+
     }
 }
