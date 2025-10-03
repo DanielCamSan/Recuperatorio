@@ -22,7 +22,22 @@ namespace Recuperatorio.Controllers
             return events is null ? NotFound(new { error = "Event not found", status = 404 })
                 : Ok(events);
         }
+        [HttpPost]
+        public IActionResult Create([FromBody] CreateEventDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var events = new Event
+            {
+                Id = Guid.NewGuid(),
+                Title = dto.Title.Trim(),
+                Location = dto.Location.Trim(),
+                Theme = dto.Theme.Trim()
+            };
+            _events.Add(events);
+            return CreatedAtAction(nameof(GetOne), new { id = events.Id }, events);
+        }
 
-      
+       
+
     }  
 }
