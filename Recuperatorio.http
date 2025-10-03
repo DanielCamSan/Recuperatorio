@@ -1,0 +1,6 @@
+@Recuperatorio_HostAddress = http://localhost:5193
+
+GET {{Recuperatorio_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
