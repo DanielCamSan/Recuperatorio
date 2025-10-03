@@ -24,6 +24,28 @@ namespace Recuperatorio.Controllers
                 ? NotFound(new { error = "Ticket not found", status = 404 })
                 : Ok(ticket);
         }
-       
+
+        [HttpPost]
+        public IActionResult Create([FromBody] CreatedTicketDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var ticket = new Ticket
+            { 
+                Id= Guid.NewGuid(),
+                GuestId= Guid.NewGuid(),
+                EventId= Guid.NewGuid(),
+                Type=dto.Type.Trim(),
+                Price=dto.Price,
+                Status=dto.Status.Trim(),
+                Notes=dto.Notes.Trim()
+         
+            
+            };
+            _tickets.Add(ticket);
+            return CreatedAtAction(nameof(GetOne), new { id = ticket.Id }, ticket);
+
+
+        }
+
     }
 }
