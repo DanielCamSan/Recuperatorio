@@ -20,3 +20,13 @@
 | **put** | /api/v1/events/id | Update event |
 
 | **delete** | /api/v1/events/id | Delete event |     
+
+|**get** | /api/v1/tickets | Return list with pagination and order|
+
+|**get** |/api/v1/tickets/{id}| return ticket|
+
+|**post** |/api/v1/tickets | Create ticket|
+
+|**put** |/api/v1/tickets/{id}| Update ticket|
+
+|**delete** |/api/v1/tickets/{id}|delete ticket|
