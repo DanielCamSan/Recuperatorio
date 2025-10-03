@@ -5,7 +5,7 @@ namespace Recuperatorio.Controllers
 {
 
     [ApiController]
-    [Route("api/{controller}")]
+    [Route("api/v1/{controller}")]
     public class TicketsController:ControllerBase
     {
         private static readonly List<Ticket> _tickets = new()
@@ -72,6 +72,15 @@ namespace Recuperatorio.Controllers
 
         }
 
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
+        {
+            var removed = -_tickets.RemoveAll(b => b.Id == id);
+            return removed == 0
+                ? NotFound(new { error = "Ticket not Found", status = 404 })
+                : NoContent();
+
+        }
 
 
 
