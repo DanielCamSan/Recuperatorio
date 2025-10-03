@@ -55,7 +55,16 @@ namespace Recuperatorio.Controllers
             return Ok(updated);
         }
 
-        
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
+        {
+            var removed = _events.RemoveAll(x => x.Id == id);
+            return removed == 0
+                ? NotFound(new { error = "Event not found", status = 404 })
+                : NoContent();
+        }
+
+       
 
 
     }  
