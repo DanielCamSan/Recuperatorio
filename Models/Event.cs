@@ -13,6 +13,7 @@ public record CreateEventDto
     public string Title { get; set;} = string.Empty;
     public string Location { get; set; } = string.Empty;
     public string Theme { get; set; } = string.Empty;
+    [Range(0,100)]
     public int Capacity { get; set; }
 
 
