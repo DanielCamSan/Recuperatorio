@@ -6,7 +6,7 @@ public class Guest
     public string FullName { get; set; } = string.Empty;
     [EmailAddress]
     public string Email {  get; set; } = string.Empty;
-    [Range(7,20)]
+   
     public string Phone {  get; set; } = string.Empty;
     public bool Confirmed { get; set; } = false;
 }
