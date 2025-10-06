@@ -26,9 +26,9 @@ namespace Recuperatorio.Controllers
         }
         private static IEnumerable<T> OrderByProp<T>(IEnumerable<T> src, string? sort, string? order)
         {
-            if (string.IsNullOrWhiteSpace(sort)) return src; // no-op
+            if (string.IsNullOrWhiteSpace(sort)) return src;
             var prop = typeof(T).GetProperty(sort, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            if (prop is null) return src; // campo inválido => no ordenar
+            if (prop is null) return src;
 
             return string.Equals(order, "desc", StringComparison.OrdinalIgnoreCase)
                 ? src.OrderByDescending(x => prop.GetValue(x))
@@ -55,5 +55,36 @@ namespace Recuperatorio.Controllers
             var data = query.Skip((p - 1) * l).Take(l).ToList();
             return Ok(new { data, meta = new { page = p, limit = l, total } });
         }
+
+
+        [HttpGet("{id:guid}")]
+        public ActionResult<Ticket> GetOne(Guid id)
+        {
+            var ticket = _Tickets.FirstOrDefault(a => a.Id == id);
+            return ticket is null
+                ? NotFound(new { error = "ticket not found", status = 404 })
+                : Ok(ticket);
+        }
+
+        [HttpPost]
+        public ActionResult<Ticket> Create([FromBody] CreateTicketDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var ticket = new Ticket
+            {
+                Id = Guid.NewGuid(),
+                GuestId = Guid.NewGuid(),
+                EventId = Guid.NewGuid(),
+                Type = dto.Type.Trim(),
+                Price = dto.Price,
+                Status = dto.Status.Trim(),
+                Notes = dto.Notes
+            };
+
+            _Tickets.Add(ticket);
+            return CreatedAtAction(nameof(GetOne), new { id = ticket.Id }, ticket);
+        }
+
     }
 }
