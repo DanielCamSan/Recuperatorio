@@ -1,150 +1,118 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using PartyPlannerAPI.DTOs;
 using PartyPlannerAPI.Models;
+using System.Reflection;
 
-namespace PartyPlannerAPI.Controllers
+namespace Recuperatorio.Controllers
 {
     [ApiController]
-    [Route("api/v1/events")]
-    [EnableRateLimiting("fixed")]
+    [Route("api/[controller]")]
     public class EventsController : ControllerBase
     {
-        private static List<Event> _events = new();
+        private static readonly List<Event> _Events = new()
+        {
+            new Event { Id = Guid.NewGuid(), Title = "Fiesta Neon", Date = DateTime.Now.AddDays(10), Location = "Club Nocturno X", Theme = "neon", Capacity = 300 },
+            new Event { Id = Guid.NewGuid(), Title = "Cena Formal", Date = DateTime.Now.AddDays(15), Location = "Hotel Luxury", Theme = "formal", Capacity = 150 },
+            new Event { Id = Guid.NewGuid(), Title = "Halloween Party", Date = DateTime.Now.AddDays(25), Location = "Casa Embrujada", Theme = "halloween", Capacity = 200 },
+            new Event { Id = Guid.NewGuid(), Title = "Fiesta Casual", Date = DateTime.Now.AddDays(5), Location = "Playa Central", Theme = "casual", Capacity = 100 },
+        };
 
-        // GET: api/v1/events
+        private static (int page, int limit) NormalizePage(int? page, int? limit)
+        {
+            var p = page.GetValueOrDefault(1); if (p < 1) p = 1;
+            var l = limit.GetValueOrDefault(10); if (l < 1) l = 1; if (l > 100) l = 100;
+            return (p, l);
+        }
+
+        private static IEnumerable<T> OrderByProp<T>(IEnumerable<T> src, string? sort, string? order)
+        {
+            if (string.IsNullOrWhiteSpace(sort)) return src;
+            var prop = typeof(T).GetProperty(sort, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            if (prop is null) return src;
+
+            return string.Equals(order, "desc", StringComparison.OrdinalIgnoreCase)
+                ? src.OrderByDescending(x => prop.GetValue(x))
+                : src.OrderBy(x => prop.GetValue(x));
+        }
+
         [HttpGet]
-        public IActionResult GetEvents([FromQuery] int page = 1, [FromQuery] int limit = 10,
-                                     [FromQuery] string sort = "id", [FromQuery] string order = "asc")
+        public IActionResult GetAll([FromQuery] int? page,
+            [FromQuery] int? limit,
+            [FromQuery] string? sort,
+            [FromQuery] string? order,
+            [FromQuery] string? q)
         {
-            // Normalizar parámetros
-            if (page < 1) page = 1;
-            if (limit < 1) limit = 10;
-            if (limit > 100) limit = 100;
-            if (order != "asc" && order != "desc") order = "asc";
+            var (p, l) = NormalizePage(page, limit);
+            IEnumerable<Event> query = _Events;
 
-            // Ordenamiento seguro
-            var query = _events.AsQueryable();
-            query = sort.ToLower() switch
+            if (!string.IsNullOrWhiteSpace(q))
             {
-                "title" => order == "asc" ? query.OrderBy(e => e.Title) : query.OrderByDescending(e => e.Title),
-                "date" => order == "asc" ? query.OrderBy(e => e.Date) : query.OrderByDescending(e => e.Date),
-                "location" => order == "asc" ? query.OrderBy(e => e.Location) : query.OrderByDescending(e => e.Location),
-                "theme" => order == "asc" ? query.OrderBy(e => e.Theme) : query.OrderByDescending(e => e.Theme),
-                "capacity" => order == "asc" ? query.OrderBy(e => e.Capacity) : query.OrderByDescending(e => e.Capacity),
-                _ => order == "asc" ? query.OrderBy(e => e.Id) : query.OrderByDescending(e => e.Id)
-            };
+                query = query.Where(e => e.Title.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                                         e.Location.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                                         e.Theme.Contains(q, StringComparison.OrdinalIgnoreCase));
+            }
 
+            query = OrderByProp(query, sort, order);
             var total = query.Count();
-            var items = query.Skip((page - 1) * limit).Take(limit).Select(e => new EventDto
-            {
-                Id = e.Id,
-                Title = e.Title,
-                Date = e.Date,
-                Location = e.Location,
-                Theme = e.Theme,
-                Capacity = e.Capacity
-            }).ToList();
+            var data = query.Skip((p - 1) * l).Take(l).ToList();
 
-            var response = new
-            {
-                data = items,
-                meta = new { page, limit, total }
-            };
-
-            return Ok(response);
+            return Ok(new { data, meta = new { page = p, limit = l, total } });
         }
 
-        // GET: api/v1/events/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetEvent(Guid id)
+        [HttpGet("{id:guid}")]
+        public ActionResult<Event> GetOne(Guid id)
         {
-            var eventItem = _events.FirstOrDefault(e => e.Id == id);
-            if (eventItem == null)
-                return NotFound(new { error = "Event not found", status = 404 });
-
-            var eventDto = new EventDto
-            {
-                Id = eventItem.Id,
-                Title = eventItem.Title,
-                Date = eventItem.Date,
-                Location = eventItem.Location,
-                Theme = eventItem.Theme,
-                Capacity = eventItem.Capacity
-            };
-
-            return Ok(eventDto);
+            var eventItem = _Events.FirstOrDefault(e => e.Id == id);
+            return eventItem is null
+                ? NotFound(new { error = "Event not found", status = 404 })
+                : Ok(eventItem);
         }
 
-        // POST: api/v1/events
         [HttpPost]
-        public IActionResult CreateEvent([FromBody] CreateEventDto createEventDto)
+        public ActionResult<Event> Create([FromBody] CreateEventDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var newEvent = new Event
+            var eventItem = new Event
             {
                 Id = Guid.NewGuid(),
-                Title = createEventDto.Title,
-                Date = createEventDto.Date,
-                Location = createEventDto.Location,
-                Theme = createEventDto.Theme,
-                Capacity = createEventDto.Capacity
+                Title = dto.Title.Trim(),
+                Date = dto.Date,
+                Location = dto.Location.Trim(),
+                Theme = dto.Theme.Trim(),
+                Capacity = dto.Capacity
             };
 
-            _events.Add(newEvent);
-
-            var eventDto = new EventDto
-            {
-                Id = newEvent.Id,
-                Title = newEvent.Title,
-                Date = newEvent.Date,
-                Location = newEvent.Location,
-                Theme = newEvent.Theme,
-                Capacity = newEvent.Capacity
-            };
-
-            return CreatedAtAction(nameof(GetEvent), new { id = newEvent.Id }, eventDto);
+            _Events.Add(eventItem);
+            return CreatedAtAction(nameof(GetOne), new { id = eventItem.Id }, eventItem);
         }
 
-        // PUT: api/v1/events/{id}
-        [HttpPut("{id}")]
-        public IActionResult UpdateEvent(Guid id, [FromBody] UpdateEventDto updateEventDto)
+        [HttpPut("{id:guid}")]
+        public ActionResult<Event> Update(Guid id, [FromBody] UpdateEventDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var eventItem = _events.FirstOrDefault(e => e.Id == id);
-            if (eventItem == null)
+            var eventItem = _Events.FirstOrDefault(e => e.Id == id);
+            if (eventItem is null)
                 return NotFound(new { error = "Event not found", status = 404 });
 
-            eventItem.Title = updateEventDto.Title;
-            eventItem.Date = updateEventDto.Date;
-            eventItem.Location = updateEventDto.Location;
-            eventItem.Theme = updateEventDto.Theme;
-            eventItem.Capacity = updateEventDto.Capacity;
+            eventItem.Title = dto.Title.Trim();
+            eventItem.Date = dto.Date;
+            eventItem.Location = dto.Location.Trim();
+            eventItem.Theme = dto.Theme.Trim();
+            eventItem.Capacity = dto.Capacity;
 
-            return Ok(new EventDto
-            {
-                Id = eventItem.Id,
-                Title = eventItem.Title,
-                Date = eventItem.Date,
-                Location = eventItem.Location,
-                Theme = eventItem.Theme,
-                Capacity = eventItem.Capacity
-            });
+            return Ok(eventItem);
         }
 
-        // DELETE: api/v1/events/{id}
-        [HttpDelete("{id}")]
-        public IActionResult DeleteEvent(Guid id)
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
         {
-            var eventItem = _events.FirstOrDefault(e => e.Id == id);
-            if (eventItem == null)
+            var eventItem = _Events.FirstOrDefault(e => e.Id == id);
+            if (eventItem is null)
                 return NotFound(new { error = "Event not found", status = 404 });
 
-            _events.Remove(eventItem);
+            _Events.Remove(eventItem);
             return NoContent();
         }
     }
