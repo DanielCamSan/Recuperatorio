@@ -80,6 +80,14 @@ namespace Recuperatorio.Controllers
             return CreatedAtAction(nameof(GetOne), new { id = guest.Id }, guest);
         }
 
+        [HttpDelete("{id:guid}")]
+        public ActionResult Delete(Guid id)
+        {
+            var removed = _guests.RemoveAll(a => a.Id == id);
+            return removed == 0
+                ? NotFound(new { error = "guest not found", status = 404 })
+                : NoContent();
+        }
 
     }
 }
