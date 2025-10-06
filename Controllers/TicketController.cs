@@ -12,10 +12,10 @@ namespace Recuperatorio.Controllers
        
             private static readonly List<Ticket> _Tickets = new()
         {
-            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "FESTIVAL", Price=419.99, Status="Ongoing", Notes = "None" },
-            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "HOUSE", Price=49.99, Status="Ongoing", Notes = "None" },
-            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "TECHNO", Price=19.99, Status="Concluded", Notes = "None"  },
-            new Ticket {Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "COUNTRY", Price=9.99, Status="Scheduled", Notes = "None"  },
+            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "BACKSTAGE", Price=419.99, Notes = "None" },
+            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "GENERAL", Price=49.99, Notes = "None" },
+            new Ticket { Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "VIP", Price=19.99, Status="USED", Notes = "None"  },
+            new Ticket {Id = Guid.NewGuid(),GuestId = Guid.NewGuid(), EventId = Guid.NewGuid(), Type = "GENERAL", Price=9.99, Status="CANCELED", Notes = "None"  },
         };
 
         private static (int page, int limit) NormalizePage(int? page, int? limit)
@@ -78,12 +78,20 @@ namespace Recuperatorio.Controllers
                 EventId = Guid.NewGuid(),
                 Type = dto.Type.Trim(),
                 Price = dto.Price,
-                Status = dto.Status.Trim(),
                 Notes = dto.Notes
             };
 
             _Tickets.Add(ticket);
             return CreatedAtAction(nameof(GetOne), new { id = ticket.Id }, ticket);
+        }
+
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
+        {
+            var byebye = _Tickets.RemoveAll(a => a.Id == id);
+            return byebye == 0
+                ? NotFound(new { error = "Ticket not found", status = 404 })
+                : NoContent();
         }
 
     }

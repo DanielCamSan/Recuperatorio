@@ -15,14 +15,12 @@ namespace Recuperatorio.Models
         public double Price { get; set; }
 
         [Required, StringLength(100)]
-        public string Status { get; set; } = string.Empty; // valid | used | canceled
+        public string Status { get; set; } = "VALID"; // valid | used | canceled
         [Required, StringLength(100)]
         public string Notes { get; set; } = string.Empty;
     }
     public record CreateTicketDto
     {
-        public Guid GuestId { get; set; }
-        public Guid EventId { get; set; }
 
         [Required, StringLength(100)]
         public string Type { get; set; } = string.Empty; // general | vip | backstage
@@ -30,7 +28,7 @@ namespace Recuperatorio.Models
         public double Price { get; set; }
 
         [Required, StringLength(100)]
-        public string Status { get; set; } = string.Empty; // valid | used | canceled
+        public string Status { get; set; } = "VALID"; // valid | used | canceled
         [Required, StringLength(100)]
         public string Notes { get; set; } = string.Empty;
     }
