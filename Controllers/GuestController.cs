@@ -53,8 +53,32 @@ namespace Recuperatorio.Controllers
             var data= query.Skip((p - 1) * l).Take(l).ToList();
             return Ok(new { data, meta = new { page= p, limit = l, total } });
         }
+        [HttpGet("{id:guid}")]
+        public ActionResult<Guest> GetOne(Guid id)
+        {
+            var guest = _guests.FirstOrDefault(a => a.Id == id);
+            return guest is null
+                ? NotFound(new { error = "ticket not found", status = 404 })
+                : Ok(guest);
+        }
 
-       
+        [HttpPost]
+        public ActionResult<Guest> Create([FromBody] CreateGuestDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var guest = new Guest
+            {
+                Id = Guid.NewGuid(),
+                FullName = dto.FullName.Trim(),
+                Email = dto.Email.Trim(),
+                Phone = dto.Phone.Trim(),
+                Confirmed= dto.Confirmed
+            };
+
+            _guests.Add(guest);
+            return CreatedAtAction(nameof(GetOne), new { id = guest.Id }, guest);
+        }
 
 
     }
