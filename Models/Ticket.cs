@@ -5,16 +5,18 @@ namespace Recuperatorio.Models
     public class Ticket
     {
 
-        Guid Id {  get; set; }
-        Guid GuestId { get; set; }
-        Guid EventId { get; set; }
+        public Guid Id {  get; set; }
+        public Guid GuestId { get; set; }
+        public Guid EventId { get; set; }
+
         [Required, StringLength(100)]
-        string Type { get; set; } // general | vip | backstage
+        public string Type { get; set; } = string.Empty; // general | vip | backstage
+       
+        public double Price { get; set; }
+
         [Required, StringLength(100)]
-        float Price { get; set; }
+        public string Status { get; set; } = string.Empty; // valid | used | canceled
         [Required, StringLength(100)]
-        string Status { get; set; } // valid | used | canceled
-        [Required, StringLength(100)]
-        string? Notes { get; set; }
+        public string Notes { get; set; } = string.Empty;
     }
 }
