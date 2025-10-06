@@ -2,10 +2,19 @@ using Microsoft.AspNetCore.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+// Configure Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed", fixedOptions =>
+    {
+        fixedOptions.PermitLimit = 100; // 100 requests
+        fixedOptions.Window = TimeSpan.FromMinutes(1); // por minuto
+        fixedOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        fixedOptions.QueueLimit = 10; // m�ximo 10 en cola
+    });
+});
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -23,13 +32,14 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseDeveloperExceptionPage();
 }
 app.UseRateLimiter();
 
-app.UseHttpsRedirection();
+app.UseRouting();
 
-app.UseAuthorization();
+// Use Rate Limiting
+app.UseRateLimiter();
 
 app.MapControllers().RequireRateLimiting("default");
 
