@@ -1,0 +1,50 @@
+## 🔌 Endpoints
+
+### 👥 Guests
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/guest` | Listar todos los invitados |
+| GET | `/api/guest/{id}` | Obtener invitado por ID |
+| POST | `/api/guest` | Crear nuevo invitado |
+| DELETE | `/api/guest/{id}` | Eliminar invitado |
+
+### 🎉 Events
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/events` | Listar todos los eventos |
+| GET | `/api/events/{id}` | Obtener evento por ID |
+| POST | `/api/events` | Crear nuevo evento |
+| PUT | `/api/events/{id}` | Actualizar evento |
+| DELETE | `/api/events/{id}` | Eliminar evento |
+
+### 🎫 Tickets
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/ticket` | Listar todos los tickets |
+| GET | `/api/ticket/{id}` | Obtener ticket por ID |
+| POST | `/api/ticket` | Crear nuevo ticket |
+| DELETE | `/api/ticket/{id}` | Eliminar ticket |
+
+## 📊 Query Parameters Comunes
+
+Todos los endpoints GET soportan:
+
+| Parámetro | Descripción | Default | Rango |
+|-----------|-------------|---------|-------|
+| `page` | Número de página | 1 | 1-∞ |
+| `limit` | Items por página | 10 | 1-100 |
+| `sort` | Campo para ordenar | id | Campos del modelo |
+| `order` | Dirección orden | asc | asc/desc |
+| `q` | Búsqueda textual | - | - |
+
+## 📝 Ejemplos JSON
+
+### Crear Guest
+```json
+POST /api/guest
+{
+  "fullName": "Carlos Méndez",
+  "email": "carlos@example.com",
+  "phone": "+59170000000",
+  "confirmed": false
+}
