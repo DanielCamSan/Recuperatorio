@@ -11,6 +11,7 @@ namespace Recuperatorio.Models
         public string Email { get; set; } = string.Empty;
         [Required, StringLength(7-20)]
         public string Phone { get; set; } = string.Empty;
+        //valor por defecto false
         public bool Confirmed { get; set; }=true;
     }
     public record CreateGuestDto

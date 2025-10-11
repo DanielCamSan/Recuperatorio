@@ -8,6 +8,7 @@ namespace Recuperatorio.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    //nombre del controller en plural
     public class GuestController:ControllerBase
     {
 
